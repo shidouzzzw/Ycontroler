@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Rename artifact
+        run: cp app/build/outputs/apk/debug/app-debug.apk Ycontroler-1.0.0.apk
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ycontroler-1.0.0
+          path: Ycontroler-1.0.0.apk
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: Ycontroler 1.0.0
+          body: |
+            İlk sürüm.
+
+            - Bluetooth HID gamepad (14 buton, 2 analog çubuk, 2 analog tetik, hat-switch D-pad)
+            - 3.5D tuşlar, analog çubuklar, 6 tema + özel vurgu rengi, AMOLED
+            - Tam ekran kontrolcü (HUD, kenar menüsü, jiroskop, tuş sesleri)
+            - Layout editörü ve 4 hazır düzen
+            - TR/EN ayarlar, JSON yedekleme, onboarding ve yardım ekranı
+
+            APK debug anahtarıyla imzalanmıştır; kurulum için "Bilinmeyen kaynaklar" izni gerekir.
+          files: Ycontroler-1.0.0.apk
+          generate_release_notes: true
